@@ -2,6 +2,12 @@
 
 set -ue
 
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root. Try:"
+    echo "sudo $0"
+    exit 1
+fi
+
 echo "Space occupied on system/OS drive at the moment:"
 df -h / | awk 'NR > 1'
 
@@ -48,7 +54,7 @@ fi
 echo "===================================="
 
 echo "Snap library size:"
-sudo du -sh /var/lib/snapd
+du -sh /var/lib/snapd
 
 echo "===================================="
 
