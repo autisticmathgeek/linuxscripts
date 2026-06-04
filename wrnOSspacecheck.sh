@@ -14,7 +14,7 @@ df -h / | awk 'NR > 1'
 
 #Check for all installations of WAVE software. Having multiple unnecessary installations of the WAVE client can occupy multiple GB of space.
 echo "===================================="
-echo "WAVE Client Versions (User):" && ls ~/.local/share/Hanwha/client/hanwha 2> /dev/null || echo "...Nothing to see here bro..."
+echo "WAVE Client Versions (User):" && ls /home/wave/.local/share/Hanwha/client/hanwha 2> /dev/null || echo "...Nothing to see here bro..."
 echo "===================================="
 echo "WAVE Client Versions (Root):" && ls /opt/hanwha/client 2> /dev/null || echo "...Nothing to see here either..." ; echo "==============================="
 echo "WAVE Media Server Version:"; cat /opt/hanwha/mediaserver/build_info.json | grep -Po '"'"vmsVersion"'"\s*:\s*"\K([^"]*)'
@@ -40,7 +40,7 @@ echo "===================================="
 
 LOGS="/var/log"
 echo "Size of syslog files:"
-du -sh $LOGS/syslog* 2> /dev/null
+du -sh $LOGS/syslog* 2> /dev/null || echo "No syslog files found"
 
 echo "===================================="
 
@@ -59,8 +59,8 @@ du -sh /var/lib/snapd
 echo "===================================="
 
 echo "Size of Downloads and Trash directory:"
-du -sh ~/* | grep "Downloads"
-du -sh ~/.local/share/*  | grep "Trash"
+du -sh /home/wave/* | grep "Downloads" || echo "No Downloads directory found"
+du -sh /home/wave/.local/share/*  | grep "Trash" || echo "No Trash directory found"
 
 echo "===================================="
 
