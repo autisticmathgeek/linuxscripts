@@ -131,6 +131,26 @@ apt purge --auto-remove thunderbird*  -y > /dev/null 2>&1 || true
 apt purge --auto-remove valgrind*     -y > /dev/null 2>&1 || true
 apt clean -y                              > /dev/null 2>&1 || true
 
+# Uninstall Firefox if present (snap or apt).
+log "Checking for and removing Firefox (snap and apt)"
+if command -v snap &>/dev/null && snap list firefox &>/dev/null 2>&1; then
+    log "  -> removing Firefox snap"
+    snap remove firefox > /dev/null 2>&1 || true
+fi
+if dpkg-query -W -f='${Status}' firefox 2>/dev/null | grep -q "ok installed"; then
+    log "  -> removing Firefox apt package"
+    apt purge --auto-remove firefox firefox-locale-en -y > /dev/null 2>&1 || true
+fi
+if [ -f /usr/bin/firefox ] || [ -f /usr/local/bin/firefox ]; then
+    log "  -> removing stale firefox binaries"
+    rm -f /usr/bin/firefox /usr/local/bin/firefox 2>/dev/null || true
+fi
+# Also try matching any leftover firefox-* dpkg packages.
+dpkg -l 2>/dev/null | awk '/^ii  firefox/{print $2}' | while read -r pkg; do
+    log "  -> purging leftover package: $pkg"
+    apt purge --auto-remove "$pkg" -y > /dev/null 2>&1 || true
+done
+
 # Install localepurge and strip all locales except en_US.
 log "Installing localepurge and removing non-en_US locales"
 printf '%s\n' \
