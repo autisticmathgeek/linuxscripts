@@ -104,6 +104,42 @@ systemctl restart rsyslog.service &
 logrotate -f /etc/logrotate.conf       > /dev/null 2>&1
 logrotate -d /etc/logrotate.d/rsyslog  > /dev/null 2>&1
 
+###############################################################################
+# AUTH.LOG ROTATION AND INITIAL CLEANUP
+###############################################################################
+
+log "Configuring separate auth.log rotation policy"
+
+tee /etc/logrotate.d/auth-log-cap > /dev/null <<'AUTH_LOGROTATE_EOF'
+/var/log/auth.log {
+    su root syslog
+    size 50M
+    rotate 3
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 syslog adm
+    sharedscripts
+    postrotate
+        /usr/lib/rsyslog/rsyslog-rotate
+    endscript
+}
+AUTH_LOGROTATE_EOF
+
+chown root:root /etc/logrotate.d/auth-log-cap
+chmod 0644 /etc/logrotate.d/auth-log-cap
+
+log "Forcing initial auth.log rotation"
+
+if logrotate -v -f /etc/logrotate.d/auth-log-cap; then
+    log "Initial auth.log rotation completed"
+    rm -f -- /var/log/auth.log.[0-9]*
+    log "Existing rotated auth.log history removed"
+else
+    log "WARNING: auth.log rotation failed; rotated history was not removed"
+fi
+
 # Journald: vacuum and tighten retention.
 log "Vacuuming journald and tightening journald.conf"
 journalctl --vacuum-size=100M  > /dev/null 2>&1
